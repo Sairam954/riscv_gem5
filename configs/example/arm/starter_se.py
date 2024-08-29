@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 ARM Limited
+# Copyright (c) 2016-2017, 2022-2023 Arm Limited
 # All rights reserved.
 #
 # The license below extends only to copyright in the software and shall
@@ -38,12 +38,13 @@ Research Starter Kit on System Modeling. More information can be found
 at: http://www.arm.com/ResearchEnablement/SystemModeling
 """
 
-import os
-import m5
-from m5.util import addToPath
-from m5.objects import *
 import argparse
+import os
 import shlex
+
+import m5
+from m5.objects import *
+from m5.util import addToPath
 
 m5.util.addToPath('../..')
 
@@ -61,7 +62,7 @@ from cfg_generater import generate_configs
 
 
 # Pre-defined CPU configurations. Each tuple must be ordered as : (cpu_class,
-# l1_icache_class, l1_dcache_class, walk_cache_class, l2_Cache_class). Any of
+# l1_icache_class, l1_dcache_class, l2_Cache_class). Any of
 # the cache class may be 'None' if the particular cache is not present.
 cpu_types = {
     "atomic" : ( AtomicSimpleCPU, None, None, None),
@@ -205,17 +206,22 @@ def create(args):
     # Tell components about the expected physical memory ranges. This
     # is, for example, used by the MemConfig helper to determine where
     # to map DRAMs in the physical address space.
-    system.mem_ranges = [ AddrRange(start=0, size=args.mem_size) ]
+    system.mem_ranges = [AddrRange(start=0, size=args.mem_size)]
 
     # Configure the off-chip memory system.
     MemConfig.config_mem(args, system)
+
+    # Wire up the system's memory system
+    system.connect()
 
     # Parse the command line and get a list of Processes instances
     # that we can pass to gem5.
     processes = get_processes(args.commands_to_run)
     if len(processes) != args.num_cores:
-        print("Error: Cannot map %d command(s) onto %d CPU(s)" %
-              (len(processes), args.num_cores))
+        print(
+            "Error: Cannot map %d command(s) onto %d CPU(s)"
+            % (len(processes), args.num_cores)
+        )
         sys.exit(1)
 
     system.workload = SEWorkload.init_compatible(processes[0].executable)
@@ -293,8 +299,7 @@ def main():
     # Print the reason for the simulation exit. Some exit codes are
     # requests for service (e.g., checkpoints) from the simulation
     # script. We'll just ignore them here and exit.
-    print(event.getCause(), " @ ", m5.curTick())
-    sys.exit(event.getCode())
+    print(f"{event.getCause()} ({event.getCode()}) @ {m5.curTick()}")
 
 
 if __name__ == "__m5_main__":

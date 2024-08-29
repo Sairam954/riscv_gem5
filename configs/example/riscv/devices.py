@@ -93,10 +93,12 @@ class MemBus(SystemXBar):
     default = Self.badaddr_responder.pio
 
 
-class CpuCluster(SubSystem):
+class CpuClusterRiscV(SubSystem):
+# class CpuCluster():
     def __init__(self, system,  num_cpus, cpu_clock, cpu_voltage,
                  cpu_type, l1i_type, l1d_type, l2_type):
-        super(CpuCluster, self).__init__()
+        
+        super(CpuClusterRiscV, self).__init__()
         self._cpu_type = cpu_type
         self._l1i_type = l1i_type
         self._l1d_type = l1d_type
@@ -117,6 +119,7 @@ class CpuCluster(SubSystem):
             cpu.createInterruptController()
             cpu.socket_id = system.numCpuClusters()
         system.addCpuCluster(self, num_cpus)
+        # print('Issue is here')
 
     def requireCaches(self):
         return self._cpu_type.require_caches()
@@ -173,7 +176,7 @@ class CpuCluster(SubSystem):
                 cpu.connectCachedPorts(bus.cpu_side_ports)
 
 
-class AtomicCluster(CpuCluster):
+class AtomicCluster(CpuClusterRiscV):
     def __init__(self, system, num_cpus, cpu_clock, cpu_voltage="1.0V"):
         cpu_config = [ ObjectList.cpu_list.get("AtomicSimpleCPU"), None,
                        None, None, None ]
@@ -182,7 +185,7 @@ class AtomicCluster(CpuCluster):
     def addL1(self):
         pass
 
-class KvmCluster(CpuCluster):
+class KvmCluster(CpuClusterRiscV):
     def __init__(self, system, num_cpus, cpu_clock, cpu_voltage="1.0V"):
         cpu_config = [ ObjectList.cpu_list.get("ArmV8KvmCPU"), None, None,
             None, None ]

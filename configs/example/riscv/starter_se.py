@@ -74,8 +74,10 @@ class SimpleSeSystem(System):
     cache_line_size = 64
 
     def __init__(self, args, **kwargs):
-        super(SimpleSeSystem, self).__init__(**kwargs)
 
+        
+        super(SimpleSeSystem, self).__init__(**kwargs)
+        
         # Setup book keeping to be able to use CpuClusters from the
         # devices module.
         self._clusters = []
@@ -93,14 +95,14 @@ class SimpleSeSystem(System):
         # and to perform debug accesses.
         self.system_port = self.membus.cpu_side_ports
 
-
+        print('CPU CLuster created')
         # Add CPUs to the system. A cluster of CPUs typically have
         # private L1 caches and a shared L2 cache.
-        self.cpu_cluster = devices.CpuCluster(self,
+        self.cpu_cluster = devices.CpuClusterRiscV(self,
                                               args.num_cores,
                                               args.cpu_freq, "1.2V",
                                               *cpu_types[args.cpu])
-
+        print('CPU CLuster created')
         # Create a cache hierarchy (unless we are simulating a
         # functional CPU in atomic memory mode) for the CPU cluster
         # and connect it to the shared memory bus.
@@ -144,7 +146,7 @@ def get_processes(cmd):
 
 def create(args):
     ''' Create and configure the system object. '''
-
+    print(args)
     system = SimpleSeSystem(args)
 
     # Tell components about the expected physical memory ranges. This
@@ -195,19 +197,22 @@ def main():
                         help="Specify the physical memory size")
 
     args = parser.parse_args()
-
+    print('Parsing Completed')
     # Create a single root node for gem5's object hierarchy. There can
     # only exist one root node in the simulator at any given
     # time. Tell gem5 that we want to use syscall emulation mode
     # instead of full system mode.
+    
     root = Root(full_system=False)
-
+    print('Creating root object')
     # Populate the root node with a system. A system corresponds to a
     # single node with shared memory.
+   
     root.system = create(args)
-
+    print('Created system')
     # Instantiate the C++ object hierarchy. After this point,
     # SimObjects can't be instantiated anymore.
+    print('Instantiate ')
     m5.instantiate()
 
     # Start the simulator. This gives control to the C++ world and
